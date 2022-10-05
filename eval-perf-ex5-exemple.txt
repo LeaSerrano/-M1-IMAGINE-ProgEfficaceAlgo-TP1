@@ -1,5 +1,0 @@
-nbr cycles: 9372
-nbr secondes: 3.055e-06
-nbr millisecondes: 0.003055
-CPI = inf
-IPC = 0

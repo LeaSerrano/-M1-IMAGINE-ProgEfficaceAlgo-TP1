@@ -55,9 +55,6 @@ class EvalPerf {
         return double(N)/seconds();
     }
     
-    void test_perf_Ex4();
-
-    std::vector<int> test_perf_Ex5(std::vector<int> tab, std::vector<int> tabP1, std::vector<int> tabP2, std::vector<int> tabFinal, int milieuTab);
 };
 
 #endif

@@ -4,16 +4,30 @@
 #include <chrono>
 #include <vector>
 #include <math.h>
+#include <cmath>
 
-void EvalPerf::test_perf_Ex4() {
+#define C1 0.2f
+#define C2 0.3f
+
+void Ex4_test() {
     long int n = 0;
     for (long int i = 0; i < 100000; i++) {
         n *= i;
     }
 }
 
-std::vector<int> EvalPerf::test_perf_Ex5(std::vector<int> tab, std::vector<int> tabP1, std::vector<int> tabP2, std::vector<int> tabFinal, int milieuTab) {
+std::vector<int> Ex5_sommePrefixe(std::vector<int> tab, std::vector<int> tabFinal) {
 
+    for (int i = 0; i < tab.size(); i++) {
+        if (i == 0) {
+            tabFinal[i] = tab[i];
+        }
+        else {
+            tabFinal[i] = tab[i] + tab[i-1];
+        }
+    }
+
+    //Essai d'optimisation non fonctionnelle
    /*for (int i = 0; i < milieuTab; i++) {
         if (i > 0) { 
             tabP1[i] = tabP1[i-1] + tab[i];
@@ -47,16 +61,6 @@ std::vector<int> EvalPerf::test_perf_Ex5(std::vector<int> tab, std::vector<int> 
         std::cout << tabFinal[k] << " " << k << std::endl;
     }*/
 
-    //Methode de base mais plus couteuse sur les grands tableaux
-    for (int i = 0; i < tab.size(); i++) {
-        if (i == 0) {
-            tabFinal[i] = tab[i];
-        }
-        else {
-            tabFinal[i] = tab[i] + tab[i-1];
-        }
-    }
-
     return tabFinal;
 }
 
@@ -69,81 +73,120 @@ float Ex6_puissances_alpha (float resultat, std::vector<float> P, int x) {
 }
 
 float Ex6_Horner (float resultat, std::vector<float> P, int x) {
-    resultat = 0;
-    for (int i = 0; i < P.size(); i++) {
-        if (i == 0) {
-            resultat += P[i];
+    for (int i = P.size()-1; i > 0 ; i--) {
+        if (i == (P.size()-1)) {
+            resultat = P[i];
         }
         else {
-            resultat += P[i-1]*x + P[i];
+            resultat = resultat*x + P[i];
         }
     }
     return resultat;
 }
 
 std::vector<float> Ex7_reduce_mult(std::vector<std::vector<float>> V , std::vector<float> res) {
-    for (int i = 0; i < V.size(); i++) {
-        for (int j = 0; j < V[0].size(); j++) {
-            res[i] = res[i] * V[i][j];
+    for (int j = 0; j < V[0].size(); j++) {
+        for (int i = 0; i < V.size(); i++) {
+            res[j] = res[j] * V[i][j];
         }
     }
     return res;
-}
+}//CPI = 12045
 
 std::vector<float> Ex7_reduce_plus(std::vector<std::vector<float>> V , std::vector<float> res) {
-    for (int i = 0; i < V.size(); i++) {
-        for (int j = 0; j < V[0].size(); j++) {
-            res[i] = res[i] + V[i][j];
+    for (int j = 0; j < V[0].size(); j++) {
+        for (int i = 0; i < V.size(); i++) {
+            res[j] = res[j] + V[i][j];
         }
     }
     return res;
+}//CPI = 11800
+
+//Ex8
+void slowperformance1(std::vector<float> x, std::vector<float> y, std::vector<float> z, int n) {
+    for(int i = 0 ; i < (n-2) ; i ++) {
+        x[i] = x[i]/M_SQRT2 + y[i] * C1;
+        x[i+1] += z[(i%4) * 10] * C2;
+        x[i+2] += sin((2 * M_PI * i)/3 ) * y[i+2]; 
+    }
+}//CPI ~= 2180213
+
+void slowperformance2(std::vector<float> x, std::vector<float> y, std::vector<float> z, int n) {
+    x[0] = x[0]/M_SQRT2 + y[0] * C1;
+    x[1] = (x[1]/M_SQRT2 + y[1] * C1) + z[(0%4) * 10] * C2;
+
+    for(int i = 2 ; i < (n-2) ; i ++) {
+        x[i] = x[i]/M_SQRT2 + y[i] * C1 + z[((i-1)%4) * 10] * C2 + sin((2 * M_PI * (i-2))/3 ) * y[i];
+    }
+
+    x[n-2] = x[n-2]/M_SQRT2 + y[n-2] * C1 + z[((n-3)%4) * 10] * C2;
+    x[n-1] = x[n-1]/M_SQRT2 + y[n-1] * C1;
 }
 
 int main() {
   int n, N;
   EvalPerf PE;
 
-  //Exemple de base du tp
-  /*std::vector<int> tab(4);
-  tab[0] = 1;
-  tab[1] = 3;
-  tab[2] = 10;
-  tab[3] = 2;
+  //Ex5 petit tableau
+  std::vector<int> tab_Ex5_1(4);
+  tab_Ex5_1[0] = 1;
+  tab_Ex5_1[1] = 3;
+  tab_Ex5_1[2] = 10;
+  tab_Ex5_1[3] = 2;
+  int tailleTab_Ex5_1 = tab_Ex5_1.size();
+  std::vector<int> tabFinal_Ex5_1(tailleTab_Ex5_1);
 
-  std::vector<int> tabP1(2), tabP2(2), tabFinal(4), tabAffiche(4);
-
-  int milieuTab = floor(2);*/
-
-  std::vector<int> tab(10);
-  for (int i = 0; i < 10; i++) {
-    tab[i] = 100;
+  //Ex5 grand tableau
+  std::vector<int> tab_Ex5_2(100);
+  for (int i = 0; i < 100; i++) {
+    tab_Ex5_2[i] = 100;
   }
+  int tailleTab_Ex5_2 = tab_Ex5_2.size();
+  std::vector<int> tabFinal_Ex5_2(tailleTab_Ex5_2);
 
-  std::vector<int> tabP1(5), tabP2(5), tabFinal(10), tabAffiche(10);
 
-  int milieuTab = floor(5);
+  //Ex6 petit tableau int
+  std::vector<float> tab_Ex6_1(4);
+  tab_Ex6_1[0] = -5;
+  tab_Ex6_1[1] = 3;
+  tab_Ex6_1[2] = -7;
+  tab_Ex6_1[3] = 4;
+  int x_Ex6_1 = 2;
+  float resultat_Ex6_1;
 
-  PE.start();
-  //PE.test_perf_Ex4();
+  //Ex6 grand tableau int
+  std::vector<float> tab_Ex6_2(1000);
+  for (int i = 0; i < 1000; i++) {
+    tab_Ex6_2[i] = 30*i;
+  }
+  int x_Ex6_2 = 20;
+  float resultat_Ex6_2;
 
-  //PE.test_perf_Ex5(tab, tabP1, tabP2, tabFinal, milieuTab);
+  //Ex6 petit tableau float
+  std::vector<float> tab_Ex6_3(10);
+  tab_Ex6_3[0] = 10.6;
+  tab_Ex6_3[1] = 5.2;
+  tab_Ex6_3[2] = 34.7;
+  tab_Ex6_3[3] = 2.1;
+  tab_Ex6_3[4] = 7.9;
+  tab_Ex6_3[6] = 16.9;
+  tab_Ex6_3[7] = 65.6;
+  tab_Ex6_3[8] = 12.8;
+  tab_Ex6_3[9] = 7.4;
+  int x_Ex6_3 = 3.5;
+  float resultat_Ex6_3;
 
-  //Ex6
-  //P(x) = 4x³ - 7x² + 3x - 5 avec x = 2
-  /*std::vector<float> P(4);
-  P[0] = -5;
-  P[1] = 3;
-  P[2] = -7;
-  P[3] = 4;
-  int x = 2;
-  float resultat;
-
-  std::cout << Ex6_puissances_alpha(resultat, P, x) << std::endl;
-  std::cout << Ex6_Horner(resultat, P, x) << std::endl;*/
+  //Ex6 grand tableau float
+  std::vector<float> tab_Ex6_4(1000);
+  for (int i = 0; i < 1000; i++) {
+    tab_Ex6_4[i] = 45.6*i;
+  }
+  int x_Ex6_4 = 25.9;
+  float resultat_Ex6_4;
 
 
   //Ex7
-  std::vector<std::vector<float>> V = {{1, 4, 7}, {2, 5, 8}, {3, 6, 9}};
+  std::vector<std::vector<float>> V = {{1, 2, 3}, {4, 5, 6}, {7, 8, 9}};
   
   std::vector<float> resMult(3);
   resMult[0]=1;
@@ -155,10 +198,41 @@ int main() {
   resPlus[1]=0;
   resPlus[2]=0;
 
-  /*std::vector<float> affichageResultatMult = Ex7_reduce_mult(V, resMult);
-  std::cout << affichageResultatMult[0] << " " << affichageResultatMult[1] << " " << affichageResultatMult[2] << std::endl;*/
-  std::vector<float> affichageResultatPlus = Ex7_reduce_plus(V, resPlus);
-  std::cout << affichageResultatPlus[0] << " " << affichageResultatPlus[1] << " " << affichageResultatPlus[2] << std::endl;
+
+  //Ex8
+  std::vector<float> X(10000);
+  std::vector<float> Y(10000);
+  std::vector<float> Z(10000);
+
+  for (int i = 0; i < 10000; i++) {
+        X[i] = rand() % 100 + 1;
+        Y[i] = rand() % 100 + 1;
+        Z[i] = rand() % 100 + 1;
+   }
+
+  PE.start();
+  
+  //Ex4_test();
+
+  //Ex5_sommePrefixe(tab_Ex5_1, tabFinal_Ex5_1);
+  //Ex5_sommePrefixe(tab_Ex5_2, tabFinal_Ex5_2);
+
+
+  //Ex6_puissances_alpha(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
+  //Ex6_Horner(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
+  //Ex6_puissances_alpha(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
+  //Ex6_Horner(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
+  //Ex6_puissances_alpha(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
+  //Ex6_Horner(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
+  //Ex6_puissances_alpha(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
+  //Ex6_Horner(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
+
+
+  //Ex7_reduce_mult(V, resMult);
+  //Ex7_reduce_plus(V, resPlus);
+
+
+  slowperformance1(X, Y, Z, 10000);
 
   PE.stop();
 
