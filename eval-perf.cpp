@@ -108,20 +108,40 @@ void slowperformance1(std::vector<float> x, std::vector<float> y, std::vector<fl
         x[i] = x[i]/M_SQRT2 + y[i] * C1;
         x[i+1] += z[(i%4) * 10] * C2;
         x[i+2] += sin((2 * M_PI * i)/3 ) * y[i+2]; 
+        
     }
-}//CPI ~= 2180213
+}//nbCycles ~= 2060289
 
 void slowperformance2(std::vector<float> x, std::vector<float> y, std::vector<float> z, int n) {
     x[0] = x[0]/M_SQRT2 + y[0] * C1;
-    x[1] = (x[1]/M_SQRT2 + y[1] * C1) + z[(0%4) * 10] * C2;
+    x[1] = x[1] + (x[1]/M_SQRT2 + y[1] * C1);
 
     for(int i = 2 ; i < (n-2) ; i ++) {
         x[i] = x[i]/M_SQRT2 + y[i] * C1 + z[((i-1)%4) * 10] * C2 + sin((2 * M_PI * (i-2))/3 ) * y[i];
     }
 
-    x[n-2] = x[n-2]/M_SQRT2 + y[n-2] * C1 + z[((n-3)%4) * 10] * C2;
-    x[n-1] = x[n-1]/M_SQRT2 + y[n-1] * C1;
-}
+}//nbCycles ~= 1913491
+
+
+float Ex9_puissances_alpha (float resultat, std::vector<float> P, int x, int i, int sizeP) {
+    for (; i < sizeP; i++) {
+        resultat += P[i]*(pow(x, i));
+    }
+    return resultat;
+}//nbCycles ~= 174368 donc ILP ~= 3/174368
+
+float Ex9_Horner (float resultat, std::vector<float> P, int x, int i,  int sizeP) {
+        for (; i > 0 ; i--) {
+        if (i == sizeP) {
+            resultat = P[i];
+        }
+        else {
+            resultat = resultat*x + P[i];
+        }
+    }
+    return resultat;
+}//nbCycles ~= 47584 donc ILP ~= 3/47584
+
 
 int main() {
   int n, N;
@@ -210,29 +230,49 @@ int main() {
         Z[i] = rand() % 100 + 1;
    }
 
+
+  //Ex9 grand tableau int
+  std::vector<float> tab_Ex9(1000);
+  for (int i = 0; i < 1000; i++) {
+    tab_Ex9[i] = 30*i;
+  }
+  int x_Ex9 = 20;
+  float resultat_Ex9 = 0;
+  int indice_Ex9_1 = 0;
+  int sizeP_Ex9 = tab_Ex9.size();
+
+  int indice_Ex9_2 = tab_Ex9.size()-1;
+
+
   PE.start();
   
-  //Ex4_test();
+  Ex4_test();
 
-  //Ex5_sommePrefixe(tab_Ex5_1, tabFinal_Ex5_1);
-  //Ex5_sommePrefixe(tab_Ex5_2, tabFinal_Ex5_2);
-
-
-  //Ex6_puissances_alpha(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
-  //Ex6_Horner(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
-  //Ex6_puissances_alpha(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
-  //Ex6_Horner(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
-  //Ex6_puissances_alpha(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
-  //Ex6_Horner(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
-  //Ex6_puissances_alpha(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
-  //Ex6_Horner(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
+  Ex5_sommePrefixe(tab_Ex5_1, tabFinal_Ex5_1);
+  Ex5_sommePrefixe(tab_Ex5_2, tabFinal_Ex5_2);
 
 
-  //Ex7_reduce_mult(V, resMult);
-  //Ex7_reduce_plus(V, resPlus);
+  Ex6_puissances_alpha(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
+  Ex6_Horner(resultat_Ex6_1, tab_Ex6_1, x_Ex6_1);
+  Ex6_puissances_alpha(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
+  Ex6_Horner(resultat_Ex6_2, tab_Ex6_2, x_Ex6_2);
+  Ex6_puissances_alpha(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
+  Ex6_Horner(resultat_Ex6_3, tab_Ex6_3, x_Ex6_3);
+  Ex6_puissances_alpha(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
+  Ex6_Horner(resultat_Ex6_4, tab_Ex6_4, x_Ex6_4);
 
 
+  Ex7_reduce_mult(V, resMult);
+  Ex7_reduce_plus(V, resPlus);
+
+
+  //Ex8
   slowperformance1(X, Y, Z, 10000);
+  slowperformance2(X, Y, Z, 10000);
+
+
+  Ex9_puissances_alpha(resultat_Ex9, tab_Ex9, x_Ex9, indice_Ex9_1, sizeP_Ex9);
+  Ex9_Horner (resultat_Ex9, tab_Ex9, x_Ex9, indice_Ex9_2, sizeP_Ex9);
 
   PE.stop();
 
